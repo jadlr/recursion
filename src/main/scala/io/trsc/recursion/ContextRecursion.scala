@@ -84,10 +84,10 @@ object ContextRecursion extends App {
         NonEmptyList(errs.head, errs.tail:_*).failure
       else
         EsQuery(str).successNel
-    case EnvT((errs, And(expressions)))    ⇒ expressions.sequence.bimap(_ :::> errs.toIList, EsAnd(_))
-    case EnvT((errs, Or(expressions)))     ⇒ expressions.sequence.bimap(_ :::> errs.toIList, EsOr(_))
-    case EnvT((errs, Not(expressions)))    ⇒ expressions.sequence.bimap(_ :::> errs.toIList, EsNot(_))
-    case EnvT((errs, Filter(expressions))) ⇒ expressions.sequence.bimap(_ :::> errs.toIList, EsFilter(_))
+    case EnvT((errs, And(expressions)))    ⇒ expressions.sequence.bimap(_ :::> errs.toIList, EsAnd)
+    case EnvT((errs, Or(expressions)))     ⇒ expressions.sequence.bimap(_ :::> errs.toIList, EsOr)
+    case EnvT((errs, Not(expressions)))    ⇒ expressions.sequence.bimap(_ :::> errs.toIList, EsNot)
+    case EnvT((errs, Filter(expressions))) ⇒ expressions.sequence.bimap(_ :::> errs.toIList, EsFilter)
   }
 
   // Example:
