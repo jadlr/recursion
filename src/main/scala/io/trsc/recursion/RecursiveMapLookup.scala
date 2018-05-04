@@ -19,23 +19,25 @@ object RecursiveMapLookup extends App {
     }
   }
 
-  def schema[T](implicit T: Corecursive.Aux[T, Expr]): T =
-    Lookup[T](Map(
-      "a" → Leaf[T]("val_a").embed,
-      "b" → Leaf[T]("val_b").embed,
-      "c" → Lookup[T](Map(
-        "a1" → Leaf[T]("val_a1").embed,
-        "b1" → Lookup[T](Map(
-          "a2" → Leaf[T]("val_a2").embed
-        )).embed
-      )).embed
-    )).embed
+  def leaf(s: String): Fix[Expr] = Leaf[Fix[Expr]](s).embed
+  def lookup(m: (String, Fix[Expr])*): Fix[Expr] = Lookup[Fix[Expr]](m.toMap).embed
 
+  val schema: Fix[Expr] =
+    lookup(
+      "a" → leaf("val_a"),
+      "b" → leaf("val_b"),
+      "c" → lookup(
+        "a1" → leaf("val_a1"),
+        "b1" → lookup(
+          "a2" → leaf("val_a2")
+        )
+      )
+    )
 
   val find: Algebra[Expr, List[String] ⇒ Option[String]] = {
     case Lookup(m) ⇒ {
       case Nil    ⇒ None
-      case h :: t ⇒ m.get(h).flatMap(f ⇒ f(t))
+      case h :: t ⇒ m.get(h) >>= (f ⇒ f(t))
     }
     case Leaf(s) ⇒ {
       case Nil ⇒ s.some
@@ -43,7 +45,7 @@ object RecursiveMapLookup extends App {
     }
   }
 
-  val extract: List[String] ⇒ Option[String] = schema[Fix[Expr]].cata(find)
+  val extract: List[String] ⇒ Option[String] = schema.cata(find)
 
   println(extract(List("a")))
   println(extract(List("c", "a1")))
